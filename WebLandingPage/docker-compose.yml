@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  # Container Backend
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: Laravel-ArmoniaWeb-App
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app:z
+    command: php artisan serve --host=0.0.0.0 --port=8000
+    depends_on:
+      - database
+
+  # Container Frontend
+  frontend:
+    image: node:22-alpine
+    container_name: Laravel-ArmoniaWeb-Vite
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app:z
+    working_dir: /app
+    command: sh -c "npm install && npm run dev"
+    depends_on:
+      - app
+
+  # Container Database
+  database:
+    image: docker.io/library/postgres:16-alpine
+    container_name: Laravel-ArmoniaWeb-DB
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-ArmoniaWebLandingPage-DB}
+      POSTGRES_USER: ${DB_USERNAME:-Armonia}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-rahasia_lokal}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+
+volumes:
+  postgres_data:
+    driver: local
